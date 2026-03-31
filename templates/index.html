@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SimForge — Wave Balance Simulator</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d0d0d;
+      --surface:   #161616;
+      --border:    #2a2a2a;
+      --amber:     #ffaa00;
+      --amber-dim: #cc8800;
+      --text:      #e0e0e0;
+      --muted:     #888;
+      --danger:    #ff4444;
+      --trivial:   #44cc88;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-size: 14px;
+    }
+
+    /* ── HEADER ─────────────────────────────────────────── */
+    header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 24px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      user-select: none;
+    }
+
+    header .logo {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--amber);
+      letter-spacing: 0.5px;
+    }
+
+    header .logo span {
+      color: var(--text);
+      font-weight: 400;
+    }
+
+    header .tag {
+      font-size: 11px;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 2px 8px;
+    }
+
+    /* ── LAYOUT ─────────────────────────────────────────── */
+    .layout {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      height: calc(100vh - 49px);
+      overflow: hidden;
+    }
+
+    /* ── LEFT PANEL ─────────────────────────────────────── */
+    .panel {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      padding: 20px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--amber);
+      margin-bottom: 10px;
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    label {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    input[type="number"] {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      color: var(--text);
+      font-size: 13px;
+      padding: 7px 10px;
+      width: 100%;
+      transition: border-color 0.15s;
+      -moz-appearance: textfield;
+    }
+
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+    input[type="number"]:focus {
+      outline: none;
+      border-color: var(--amber);
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+    }
+
+    .btn-simulate {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: var(--amber);
+      color: #0d0d0d;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      padding: 11px;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.08s;
+      width: 100%;
+    }
+
+    .btn-simulate:hover  { background: #ffbb22; }
+    .btn-simulate:active { transform: scale(0.98); }
+
+    .btn-simulate.loading { opacity: 0.6; pointer-events: none; }
+
+    /* ── RIGHT PANEL ────────────────────────────────────── */
+    .main {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .chart-area {
+      flex: 1;
+      padding: 24px;
+      min-height: 0;
+    }
+
+    .chart-wrapper {
+      position: relative;
+      height: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .chart-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      gap: 10px;
+      color: var(--muted);
+    }
+
+    .chart-placeholder svg {
+      opacity: 0.25;
+    }
+
+    .chart-placeholder p {
+      font-size: 13px;
+    }
+
+    /* ── SUMMARY BAR ────────────────────────────────────── */
+    .summary {
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      padding: 14px 24px;
+      display: none;
+      gap: 24px;
+      flex-wrap: wrap;
+      align-items: flex-start;
+    }
+
+    .summary.visible { display: flex; }
+
+    .summary-block { display: flex; flex-direction: column; gap: 4px; }
+
+    .summary-block .label {
+      font-size: 11px;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .summary-block .value {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .value.danger  { color: var(--danger); }
+    .value.trivial { color: var(--trivial); }
+    .value.ok      { color: var(--amber); }
+
+    .wave-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 2px;
+    }
+
+    .pill {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 12px;
+    }
+
+    .pill.danger  { background: rgba(255,68,68,0.15);  color: var(--danger);  border: 1px solid rgba(255,68,68,0.3); }
+    .pill.trivial { background: rgba(68,204,136,0.12); color: var(--trivial); border: 1px solid rgba(68,204,136,0.3); }
+
+    .error-msg {
+      color: var(--danger);
+      font-size: 12px;
+      margin-top: 4px;
+      display: none;
+    }
+
+    /* ── SCROLLBAR ──────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">CMG<span>Forge</span> / SimForge</div>
+  <div class="tag">Wave Balance Simulator</div>
+</header>
+
+<div class="layout">
+
+  <!-- LEFT PANEL -->
+  <aside class="panel">
+
+    <div>
+      <div class="section-title">Simulation</div>
+      <div class="field-group">
+        <div class="field">
+          <label for="wave_count">Wave Count (5 – 50)</label>
+          <input type="number" id="wave_count" value="20" min="5" max="50" />
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div>
+      <div class="section-title">Player</div>
+      <div class="field-group">
+        <div class="field">
+          <label for="player_hp">Base HP</label>
+          <input type="number" id="player_hp" value="100" min="1" />
+        </div>
+        <div class="field">
+          <label for="player_dps">Base DPS</label>
+          <input type="number" id="player_dps" value="50" min="1" />
+        </div>
+        <div class="field">
+          <label for="player_scale">Power Scaling per Wave (%)</label>
+          <input type="number" id="player_scale" value="10" min="0" max="200" step="0.5" />
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div>
+      <div class="section-title">Enemy</div>
+      <div class="field-group">
+        <div class="field">
+          <label for="enemy_hp">Base HP</label>
+          <input type="number" id="enemy_hp" value="80" min="1" />
+        </div>
+        <div class="field">
+          <label for="enemy_damage">Base Damage</label>
+          <input type="number" id="enemy_damage" value="20" min="1" />
+        </div>
+        <div class="field">
+          <label for="enemy_scale">Difficulty Scaling per Wave (%)</label>
+          <input type="number" id="enemy_scale" value="15" min="0" max="200" step="0.5" />
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div>
+      <button class="btn-simulate" id="btn-simulate" onclick="runSimulation()">
+        &#9654; SIMULATE
+      </button>
+      <div class="error-msg" id="error-msg"></div>
+    </div>
+
+  </aside>
+
+  <!-- RIGHT PANEL -->
+  <div class="main">
+
+    <div class="chart-area">
+      <div class="chart-wrapper" id="chart-wrapper">
+        <div class="chart-placeholder" id="placeholder">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+          <p>Configure parameters and press <strong>SIMULATE</strong></p>
+        </div>
+        <canvas id="chart" style="display:none;"></canvas>
+      </div>
+    </div>
+
+    <div class="summary" id="summary">
+      <div class="summary-block">
+        <span class="label">Total Waves</span>
+        <span class="value ok" id="s-total">—</span>
+      </div>
+      <div class="summary-block">
+        <span class="label">Danger Waves</span>
+        <span class="value danger" id="s-danger-count">—</span>
+        <div class="wave-pills" id="s-danger-pills"></div>
+      </div>
+      <div class="summary-block">
+        <span class="label">Trivial Waves</span>
+        <span class="value trivial" id="s-trivial-count">—</span>
+        <div class="wave-pills" id="s-trivial-pills"></div>
+      </div>
+      <div class="summary-block">
+        <span class="label">Balanced Waves</span>
+        <span class="value ok" id="s-balanced">—</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  let chartInstance = null;
+
+  function getVal(id) {
+    return parseFloat(document.getElementById(id).value) || 0;
+  }
+
+  async function runSimulation() {
+    const btn = document.getElementById('btn-simulate');
+    const errEl = document.getElementById('error-msg');
+    errEl.style.display = 'none';
+    btn.classList.add('loading');
+    btn.textContent = '⏳ Simulating…';
+
+    const payload = {
+      wave_count:    parseInt(document.getElementById('wave_count').value) || 20,
+      player_hp:     getVal('player_hp'),
+      player_dps:    getVal('player_dps'),
+      player_scale:  getVal('player_scale'),
+      enemy_hp:      getVal('enemy_hp'),
+      enemy_damage:  getVal('enemy_damage'),
+      enemy_scale:   getVal('enemy_scale'),
+    };
+
+    try {
+      const res  = await fetch('/api/simulate', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(payload),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Server error');
+      }
+
+      renderChart(data);
+      renderSummary(data);
+
+    } catch (err) {
+      errEl.textContent = err.message;
+      errEl.style.display = 'block';
+    } finally {
+      btn.classList.remove('loading');
+      btn.innerHTML = '&#9654; SIMULATE';
+    }
+  }
+
+  function renderChart(data) {
+    const { waves, player_power, enemy_difficulty, danger_waves } = data;
+
+    document.getElementById('placeholder').style.display = 'none';
+    const canvas = document.getElementById('chart');
+    canvas.style.display = 'block';
+
+    // Build danger-zone background bands
+    const dangerSet = new Set(danger_waves);
+    const annotations = [];
+
+    // Group consecutive danger waves into bands
+    let start = null;
+    for (let i = 0; i < waves.length; i++) {
+      const w = waves[i];
+      if (dangerSet.has(w)) {
+        if (start === null) start = i;
+      } else {
+        if (start !== null) {
+          annotations.push({ xMin: start, xMax: i - 1 });
+          start = null;
+        }
+      }
+    }
+    if (start !== null) annotations.push({ xMin: start, xMax: waves.length - 1 });
+
+    // Destroy old chart
+    if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+
+    const ctx = canvas.getContext('2d');
+
+    // Danger zone background plugin
+    const dangerPlugin = {
+      id: 'dangerZones',
+      beforeDraw(chart) {
+        const { ctx: c, chartArea: { top, bottom }, scales: { x } } = chart;
+        annotations.forEach(({ xMin, xMax }) => {
+          const left  = x.getPixelForValue(xMin);
+          const right = x.getPixelForValue(xMax);
+          c.save();
+          c.fillStyle = 'rgba(255, 68, 68, 0.08)';
+          c.fillRect(left, top, right - left, bottom - top);
+          c.restore();
+        });
+      }
+    };
+
+    chartInstance = new Chart(ctx, {
+      type: 'line',
+      plugins: [dangerPlugin],
+      data: {
+        labels: waves.map(w => `W${w}`),
+        datasets: [
+          {
+            label: 'Player Power',
+            data:  player_power,
+            borderColor:     '#ffaa00',
+            backgroundColor: 'rgba(255,170,0,0.08)',
+            borderWidth: 2.5,
+            pointRadius: waves.length <= 20 ? 3 : 1.5,
+            pointBackgroundColor: '#ffaa00',
+            tension: 0.35,
+            fill: false,
+          },
+          {
+            label: 'Enemy Difficulty',
+            data:  enemy_difficulty,
+            borderColor:     '#ff4444',
+            backgroundColor: 'rgba(255,68,68,0.06)',
+            borderWidth: 2.5,
+            pointRadius: waves.length <= 20 ? 3 : 1.5,
+            pointBackgroundColor: '#ff4444',
+            tension: 0.35,
+            fill: false,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: {
+            labels: {
+              color: '#e0e0e0',
+              font: { size: 12 },
+              usePointStyle: true,
+              pointStyleWidth: 12,
+            }
+          },
+          tooltip: {
+            backgroundColor: '#1e1e1e',
+            borderColor: '#2a2a2a',
+            borderWidth: 1,
+            titleColor: '#ffaa00',
+            bodyColor: '#e0e0e0',
+            padding: 10,
+            callbacks: {
+              label(ctx) {
+                return ` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: {
+              color: '#666',
+              maxRotation: 0,
+              autoSkip: true,
+              maxTicksLimit: 15,
+            },
+            grid: { color: 'rgba(255,255,255,0.04)' }
+          },
+          y: {
+            ticks: { color: '#666' },
+            grid: { color: 'rgba(255,255,255,0.04)' }
+          }
+        }
+      }
+    });
+  }
+
+  function renderSummary(data) {
+    const { waves, danger_waves, trivial_waves } = data;
+    const balanced = waves.length - danger_waves.length - trivial_waves.length;
+
+    document.getElementById('s-total').textContent   = waves.length;
+    document.getElementById('s-danger-count').textContent  = danger_waves.length;
+    document.getElementById('s-trivial-count').textContent = trivial_waves.length;
+    document.getElementById('s-balanced').textContent      = Math.max(0, balanced);
+
+    const dangerPills  = document.getElementById('s-danger-pills');
+    const trivialPills = document.getElementById('s-trivial-pills');
+    dangerPills.innerHTML  = '';
+    trivialPills.innerHTML = '';
+
+    danger_waves.forEach(w => {
+      const p = document.createElement('span');
+      p.className   = 'pill danger';
+      p.textContent = `W${w}`;
+      dangerPills.appendChild(p);
+    });
+
+    trivial_waves.forEach(w => {
+      const p = document.createElement('span');
+      p.className   = 'pill trivial';
+      p.textContent = `W${w}`;
+      trivialPills.appendChild(p);
+    });
+
+    document.getElementById('summary').classList.add('visible');
+  }
+
+  // Allow Enter key to trigger simulation
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') runSimulation();
+  });
+</script>
+
+</body>
+</html>
