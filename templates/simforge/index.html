@@ -1,0 +1,831 @@
+<!--
+  SimForge — index.html
+  ========================
+  CMG Forge | Wave Balance Simulator
+  © CMG Forge
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CMG Forge — SimForge</title>
+  <meta name="author" content="CMG Forge" />
+  <meta name="description" content="SimForge — Wave balance simulator for game designers by CMG Forge." />
+
+  <!-- Google Fonts — Rajdhani (UI) + Share Tech Mono (numeric values) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <style>
+    /* ══════════════════════════════════════════════════════════
+       DESIGN TOKENS
+    ══════════════════════════════════════════════════════════ */
+    :root {
+      --bg:           #08090f;
+      --surface:      #0e1018;
+      --surface2:     #13151f;
+      --surface3:     #191c28;
+      --border:       #1c1f30;
+      --border-hi:    #2c3050;
+      --text:         #c8d0e8;
+      --text-dim:     #4e5570;
+      --text-bright:  #e6eeff;
+      --font-ui:      'Rajdhani', 'Segoe UI', system-ui, sans-serif;
+      --font-mono:    'Share Tech Mono', 'Consolas', monospace;
+
+      --accent:       #ffaa00;
+      --accent-20:    rgba(255,170,0,0.20);
+      --accent-08:    rgba(255,170,0,0.08);
+      --accent-glow:  rgba(255,170,0,0.40);
+
+      --danger:       #ff4444;
+      --danger-08:    rgba(255,68,68,0.08);
+      --danger-glow:  rgba(255,68,68,0.35);
+      --trivial:      #44cc88;
+      --trivial-08:   rgba(68,204,136,0.08);
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       RESET + BASE
+    ══════════════════════════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-ui);
+      font-size: 15px;
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+
+    ::-webkit-scrollbar            { width: 6px; }
+    ::-webkit-scrollbar-track      { background: var(--bg); }
+    ::-webkit-scrollbar-thumb      { background: var(--border-hi); }
+    ::-webkit-scrollbar-thumb:hover{ background: var(--accent); }
+
+    /* ══════════════════════════════════════════════════════════
+       HEADER
+    ══════════════════════════════════════════════════════════ */
+    header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 28px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      width: 36px;
+      height: 36px;
+      border: 2px solid var(--accent);
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+      color: var(--accent);
+      flex-shrink: 0;
+      box-shadow: 0 0 12px var(--accent-glow);
+      transition: box-shadow .3s;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      user-select: none;
+    }
+
+    .header-title h1 {
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      color: var(--text-bright);
+      line-height: 1.1;
+    }
+
+    .header-title span {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 1px;
+    }
+
+    .header-badge {
+      margin-left: auto;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-dim);
+      border: 1px solid var(--border);
+      padding: 3px 10px;
+      letter-spacing: 1px;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       LAYOUT
+    ══════════════════════════════════════════════════════════ */
+    main {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      min-height: calc(100vh - 65px);
+    }
+
+    @media (max-width: 860px) {
+      main { grid-template-columns: 1fr; }
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       CONTROLS PANEL (left)
+    ══════════════════════════════════════════════════════════ */
+    .controls-panel {
+      border-right: 1px solid var(--border);
+      padding: 0 0 40px;
+      display: flex;
+      flex-direction: column;
+      background: var(--surface);
+    }
+
+    .controls-body {
+      padding: 0 24px;
+      flex: 1;
+    }
+
+    /* ── Section header ────────────────────────────────────── */
+    .sec {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 22px 0 14px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      color: var(--text-dim);
+    }
+
+    .sec-line {
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .sec-icon { color: var(--accent); font-size: 12px; }
+
+    /* ── Input row ─────────────────────────────────────────── */
+    .row {
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+      margin-bottom: 14px;
+    }
+
+    .field { display: flex; flex-direction: column; gap: 5px; flex: 1; }
+
+    .field label {
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      color: var(--text-dim);
+      font-weight: 600;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text-bright);
+      font-family: var(--font-mono);
+      font-size: 15px;
+      padding: 8px 12px;
+      outline: none;
+      border-radius: 0;
+      transition: border-color .15s, box-shadow .15s;
+      -moz-appearance: textfield;
+    }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+    input[type="number"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent-20);
+    }
+
+    /* ── Simulate button ───────────────────────────────────── */
+    .btn-simulate {
+      width: 100%;
+      margin-top: 8px;
+      padding: 14px 0;
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      font-family: var(--font-ui);
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 3.5px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: background .15s, box-shadow .15s, transform .08s;
+    }
+
+    .btn-simulate::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--accent);
+      opacity: 0;
+      transition: opacity .15s;
+    }
+
+    .btn-simulate:hover::before  { opacity: .08; }
+    .btn-simulate:hover          { box-shadow: 0 0 20px var(--accent-glow); }
+    .btn-simulate:active         { transform: scale(.985); }
+
+    .btn-simulate .btn-label     { position: relative; z-index: 1; }
+
+    .btn-simulate.loading {
+      pointer-events: none;
+      opacity: .6;
+    }
+
+    .btn-simulate.loading .btn-label::after {
+      content: '';
+      display: inline-block;
+      width: 12px;
+      animation: dots 1.2s steps(3,end) infinite;
+    }
+    @keyframes dots {
+      0%   { content: ''; }
+      33%  { content: '.'; }
+      66%  { content: '..'; }
+      100% { content: '...'; }
+    }
+
+    /* ── Error ─────────────────────────────────────────────── */
+    .error-msg {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--danger);
+      margin-top: 10px;
+      padding: 8px 12px;
+      border-left: 2px solid var(--danger);
+      background: var(--danger-08);
+      display: none;
+      letter-spacing: 0.5px;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       OUTPUT PANEL (right)
+    ══════════════════════════════════════════════════════════ */
+    .output-panel {
+      display: flex;
+      flex-direction: column;
+      padding: 24px 32px 32px;
+      gap: 20px;
+    }
+
+    /* ── Panel section header ──────────────────────────────── */
+    .output-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .output-header h2 {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      color: var(--text-dim);
+    }
+
+    /* ── Chart container ───────────────────────────────────── */
+    .chart-container {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 20px;
+      position: relative;
+      flex: 1;
+      min-height: 320px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .chart-container canvas {
+      display: block;
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    /* ── Placeholder ───────────────────────────────────────── */
+    .placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      color: var(--text-dim);
+      user-select: none;
+    }
+
+    .placeholder svg {
+      opacity: 0.18;
+    }
+
+    .placeholder p {
+      font-size: 13px;
+      letter-spacing: 1px;
+      font-weight: 600;
+    }
+
+    .placeholder p strong {
+      color: var(--accent);
+      opacity: 0.7;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       SUMMARY TABLE
+    ══════════════════════════════════════════════════════════ */
+    .summary {
+      display: none;
+      border: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .summary.visible { display: block; }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .stat-cell {
+      padding: 14px 18px;
+      border-right: 1px solid var(--border);
+    }
+    .stat-cell:last-child { border-right: none; }
+
+    .stat-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: var(--text-dim);
+      margin-bottom: 4px;
+    }
+
+    .stat-value {
+      font-family: var(--font-mono);
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    .stat-value.accent  { color: var(--accent); }
+    .stat-value.danger  { color: var(--danger); }
+    .stat-value.trivial { color: var(--trivial); }
+    .stat-value.ok      { color: var(--text-bright); }
+
+    /* ── Wave pill rows ────────────────────────────────────── */
+    .waves-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+    .waves-row:last-child { border-bottom: none; }
+
+    .waves-row-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: var(--text-dim);
+      white-space: nowrap;
+      padding-top: 3px;
+      min-width: 110px;
+    }
+
+    .pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .pill {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 2px 9px;
+      letter-spacing: 0.5px;
+    }
+
+    .pill.danger  { background: var(--danger-08);  color: var(--danger);  border: 1px solid rgba(255,68,68,0.25); }
+    .pill.trivial { background: var(--trivial-08); color: var(--trivial); border: 1px solid rgba(68,204,136,0.25); }
+
+    .no-waves {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 1px;
+      padding-top: 3px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══ HEADER ══════════════════════════════════════════════ -->
+<header>
+  <div class="logo">SF</div>
+  <div class="header-title">
+    <h1>SIMFORGE</h1>
+    <span>CMG FORGE / WAVE BALANCE SIMULATOR</span>
+  </div>
+  <div class="header-badge">v1.0</div>
+</header>
+
+<!-- ══ MAIN ════════════════════════════════════════════════ -->
+<main>
+
+  <!-- LEFT: CONTROLS -->
+  <aside class="controls-panel">
+    <div class="controls-body">
+
+      <!-- SIMULATION -->
+      <div class="sec">
+        <span class="sec-icon">◈</span>
+        SIMULATION
+        <div class="sec-line"></div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label for="wave_count">WAVE COUNT (5 – 50)</label>
+          <input type="number" id="wave_count" value="20" min="5" max="50" />
+        </div>
+      </div>
+
+      <!-- PLAYER -->
+      <div class="sec">
+        <span class="sec-icon">◈</span>
+        PLAYER
+        <div class="sec-line"></div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label for="player_hp">BASE HP</label>
+          <input type="number" id="player_hp" value="100" min="1" />
+        </div>
+        <div class="field">
+          <label for="player_dps">BASE DPS</label>
+          <input type="number" id="player_dps" value="50" min="1" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label for="player_scale">POWER SCALING / WAVE (%)</label>
+          <input type="number" id="player_scale" value="10" min="0" max="200" step="0.5" />
+        </div>
+      </div>
+
+      <!-- ENEMY -->
+      <div class="sec">
+        <span class="sec-icon">◈</span>
+        ENEMY
+        <div class="sec-line"></div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label for="enemy_hp">BASE HP</label>
+          <input type="number" id="enemy_hp" value="80" min="1" />
+        </div>
+        <div class="field">
+          <label for="enemy_damage">BASE DAMAGE</label>
+          <input type="number" id="enemy_damage" value="20" min="1" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label for="enemy_scale">DIFFICULTY SCALING / WAVE (%)</label>
+          <input type="number" id="enemy_scale" value="15" min="0" max="200" step="0.5" />
+        </div>
+      </div>
+
+      <!-- SIMULATE -->
+      <div class="sec">
+        <span class="sec-icon">◈</span>
+        RUN
+        <div class="sec-line"></div>
+      </div>
+
+      <button class="btn-simulate" id="btn-simulate" onclick="runSimulation()">
+        <span class="btn-label">▶ SIMULATE</span>
+      </button>
+
+      <div class="error-msg" id="error-msg"></div>
+
+    </div>
+  </aside>
+
+  <!-- RIGHT: OUTPUT -->
+  <div class="output-panel">
+
+    <div class="output-header">
+      <h2>BALANCE OUTPUT</h2>
+    </div>
+
+    <div class="chart-container" id="chart-container">
+      <div class="placeholder" id="placeholder">
+        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+        <p>Configure parameters and press <strong>SIMULATE</strong></p>
+      </div>
+      <canvas id="chart" style="display:none; position:absolute; inset:20px;"></canvas>
+    </div>
+
+    <div class="summary" id="summary">
+      <div class="summary-grid">
+        <div class="stat-cell">
+          <div class="stat-label">TOTAL WAVES</div>
+          <div class="stat-value accent" id="s-total">—</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-label">DANGER WAVES</div>
+          <div class="stat-value danger" id="s-danger">—</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-label">TRIVIAL WAVES</div>
+          <div class="stat-value trivial" id="s-trivial">—</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-label">BALANCED WAVES</div>
+          <div class="stat-value ok" id="s-balanced">—</div>
+        </div>
+      </div>
+
+      <div class="waves-row">
+        <div class="waves-row-label">DANGER WAVES</div>
+        <div class="pills" id="danger-pills">
+          <span class="no-waves">NONE</span>
+        </div>
+      </div>
+
+      <div class="waves-row">
+        <div class="waves-row-label">TRIVIAL WAVES</div>
+        <div class="pills" id="trivial-pills">
+          <span class="no-waves">NONE</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+  let chartInstance = null;
+
+  function getVal(id) {
+    return parseFloat(document.getElementById(id).value) || 0;
+  }
+
+  async function runSimulation() {
+    const btn   = document.getElementById('btn-simulate');
+    const label = btn.querySelector('.btn-label');
+    const errEl = document.getElementById('error-msg');
+
+    errEl.style.display = 'none';
+    btn.classList.add('loading');
+    label.textContent = 'SIMULATING';
+
+    const payload = {
+      wave_count:   parseInt(document.getElementById('wave_count').value) || 20,
+      player_hp:    getVal('player_hp'),
+      player_dps:   getVal('player_dps'),
+      player_scale: getVal('player_scale'),
+      enemy_hp:     getVal('enemy_hp'),
+      enemy_damage: getVal('enemy_damage'),
+      enemy_scale:  getVal('enemy_scale'),
+    };
+
+    try {
+      const res  = await fetch('api/simulate', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Server error');
+
+      renderChart(data);
+      renderSummary(data);
+
+    } catch (err) {
+      errEl.textContent = '⚠ ' + err.message;
+      errEl.style.display = 'block';
+    } finally {
+      btn.classList.remove('loading');
+      label.textContent = '▶ SIMULATE';
+    }
+  }
+
+  function renderChart({ waves, player_power, enemy_difficulty, danger_waves }) {
+    document.getElementById('placeholder').style.display = 'none';
+    const canvas = document.getElementById('chart');
+    canvas.style.display = 'block';
+
+    // Build danger-zone annotation bands (groups of consecutive danger waves)
+    const dangerSet = new Set(danger_waves);
+    const bands = [];
+    let start = null;
+    for (let i = 0; i < waves.length; i++) {
+      if (dangerSet.has(waves[i])) {
+        if (start === null) start = i;
+      } else {
+        if (start !== null) { bands.push({ xMin: start, xMax: i - 1 }); start = null; }
+      }
+    }
+    if (start !== null) bands.push({ xMin: start, xMax: waves.length - 1 });
+
+    if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+
+    const ctx = canvas.getContext('2d');
+
+    // Inline plugin for danger-zone shading
+    const dangerPlugin = {
+      id: 'dangerZones',
+      beforeDraw(chart) {
+        const { ctx: c, chartArea: { top, bottom }, scales: { x } } = chart;
+        bands.forEach(({ xMin, xMax }) => {
+          const left  = x.getPixelForValue(xMin);
+          const right = x.getPixelForValue(xMax);
+          c.save();
+          c.fillStyle = 'rgba(255,68,68,0.07)';
+          c.fillRect(left, top, right - left, bottom - top);
+          // Top edge line
+          c.strokeStyle = 'rgba(255,68,68,0.20)';
+          c.lineWidth = 1;
+          c.beginPath();
+          c.moveTo(left, top);
+          c.lineTo(right, top);
+          c.stroke();
+          c.restore();
+        });
+      }
+    };
+
+    chartInstance = new Chart(ctx, {
+      type: 'line',
+      plugins: [dangerPlugin],
+      data: {
+        labels: waves.map(w => `W${w}`),
+        datasets: [
+          {
+            label: 'Player Power',
+            data:  player_power,
+            borderColor:     '#ffaa00',
+            backgroundColor: 'rgba(255,170,0,0.06)',
+            borderWidth: 2,
+            pointRadius: waves.length <= 25 ? 3 : 0,
+            pointHoverRadius: 5,
+            pointBackgroundColor: '#ffaa00',
+            pointBorderColor: '#ffaa00',
+            tension: 0.3,
+            fill: false,
+          },
+          {
+            label: 'Enemy Difficulty',
+            data:  enemy_difficulty,
+            borderColor:     '#ff4444',
+            backgroundColor: 'rgba(255,68,68,0.06)',
+            borderWidth: 2,
+            pointRadius: waves.length <= 25 ? 3 : 0,
+            pointHoverRadius: 5,
+            pointBackgroundColor: '#ff4444',
+            pointBorderColor: '#ff4444',
+            tension: 0.3,
+            fill: false,
+          },
+        ],
+      },
+      options: {
+        responsive: false,
+        animation: { duration: 350 },
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: {
+            labels: {
+              color: '#4e5570',
+              font: { family: "'Share Tech Mono', monospace", size: 11 },
+              usePointStyle: true,
+              pointStyleWidth: 14,
+              padding: 20,
+            }
+          },
+          tooltip: {
+            backgroundColor: '#0e1018',
+            borderColor: '#2c3050',
+            borderWidth: 1,
+            titleColor: '#ffaa00',
+            bodyColor: '#c8d0e8',
+            titleFont: { family: "'Share Tech Mono', monospace", size: 12 },
+            bodyFont:  { family: "'Share Tech Mono', monospace", size: 12 },
+            padding: 12,
+            callbacks: {
+              label(ctx) {
+                return `  ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)}`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: {
+              color: '#4e5570',
+              font: { family: "'Share Tech Mono', monospace", size: 10 },
+              maxRotation: 0,
+              autoSkip: true,
+              maxTicksLimit: 15,
+            },
+            grid: { color: 'rgba(44,48,80,0.5)' },
+            border: { color: '#1c1f30' },
+          },
+          y: {
+            ticks: {
+              color: '#4e5570',
+              font: { family: "'Share Tech Mono', monospace", size: 10 },
+            },
+            grid: { color: 'rgba(44,48,80,0.5)' },
+            border: { color: '#1c1f30' },
+          }
+        }
+      }
+    });
+
+    // Resize canvas to fill container
+    const container = document.getElementById('chart-container');
+    canvas.width  = container.clientWidth  - 40;
+    canvas.height = container.clientHeight - 40;
+    chartInstance.resize();
+  }
+
+  function renderSummary({ waves, danger_waves, trivial_waves }) {
+    const balanced = Math.max(0, waves.length - danger_waves.length - trivial_waves.length);
+
+    document.getElementById('s-total').textContent   = waves.length;
+    document.getElementById('s-danger').textContent  = danger_waves.length;
+    document.getElementById('s-trivial').textContent = trivial_waves.length;
+    document.getElementById('s-balanced').textContent = balanced;
+
+    const dangerEl  = document.getElementById('danger-pills');
+    const trivialEl = document.getElementById('trivial-pills');
+    dangerEl.innerHTML  = '';
+    trivialEl.innerHTML = '';
+
+    if (danger_waves.length === 0) {
+      dangerEl.innerHTML = '<span class="no-waves">NONE</span>';
+    } else {
+      danger_waves.forEach(w => {
+        const p = document.createElement('span');
+        p.className   = 'pill danger';
+        p.textContent = `W${w}`;
+        dangerEl.appendChild(p);
+      });
+    }
+
+    if (trivial_waves.length === 0) {
+      trivialEl.innerHTML = '<span class="no-waves">NONE</span>';
+    } else {
+      trivial_waves.forEach(w => {
+        const p = document.createElement('span');
+        p.className   = 'pill trivial';
+        p.textContent = `W${w}`;
+        trivialEl.appendChild(p);
+      });
+    }
+
+    document.getElementById('summary').classList.add('visible');
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') runSimulation();
+  });
+</script>
+
+<!-- Hub back button -->
+<a href="/" class="hub-back-btn">&#8592; Hub</a>
+<style>
+  .hub-back-btn { position:fixed; bottom:1.25rem; left:1.25rem; padding:.4rem .9rem;
+    background:rgba(22,22,31,.9); border:1px solid #9b5de5; border-radius:999px;
+    color:#9b5de5; font-family:'Rajdhani',sans-serif; font-size:.85rem; font-weight:600;
+    text-decoration:none; backdrop-filter:blur(6px); z-index:9999; transition:.15s; }
+  .hub-back-btn:hover { background:#9b5de5; color:#fff; }
+</style>
+
+</body>
+</html>
