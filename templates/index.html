@@ -1,6 +1,5 @@
 <!--
-  SimForge — index.html
-  ========================
+  SimForge — templates/index.html
   CMG Forge | Wave Balance Simulator
   © CMG Forge
 -->
@@ -9,147 +8,184 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CMG Forge — SimForge</title>
+  <title>SimForge — Wave Balance Simulator | CMG Forge</title>
   <meta name="author" content="CMG Forge" />
   <meta name="description" content="SimForge — Wave balance simulator for game designers by CMG Forge." />
 
-  <!-- Google Fonts — Rajdhani (UI) + Share Tech Mono (numeric values) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link
-    href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap"
     rel="stylesheet"
   />
 
-  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
   <style>
-    /* ══════════════════════════════════════════════════════════
-       DESIGN TOKENS
-    ══════════════════════════════════════════════════════════ */
+    /* ── Design Tokens ───────────────────────────────────────── */
     :root {
-      --bg:           #08090f;
-      --surface:      #0e1018;
-      --surface2:     #13151f;
-      --surface3:     #191c28;
-      --border:       #1c1f30;
-      --border-hi:    #2c3050;
-      --text:         #c8d0e8;
-      --text-dim:     #4e5570;
-      --text-bright:  #e6eeff;
-      --font-ui:      'Rajdhani', 'Segoe UI', system-ui, sans-serif;
-      --font-mono:    'Share Tech Mono', 'Consolas', monospace;
+      --forge-bg:        #08090f;
+      --forge-surface:   #0f1120;
+      --forge-purple:    #a855f7;
+      --forge-indigo:    #6366f1;
+      --forge-ember:     #f97316;
+      --forge-text:      #f1f5f9;
+      --forge-muted:     #64748b;
+      --forge-green:     #22c55e;
+      --forge-danger:    #ff4444;
 
-      --accent:       #ffaa00;
-      --accent-20:    rgba(255,170,0,0.20);
-      --accent-08:    rgba(255,170,0,0.08);
-      --accent-glow:  rgba(255,170,0,0.40);
+      --indigo-08:  rgba(99,102,241,0.08);
+      --indigo-12:  rgba(99,102,241,0.12);
+      --indigo-15:  rgba(99,102,241,0.15);
+      --indigo-20:  rgba(99,102,241,0.20);
+      --indigo-30:  rgba(99,102,241,0.30);
+      --ember-15:   rgba(249,115,22,0.15);
+      --ember-40:   rgba(249,115,22,0.40);
+      --danger-08:  rgba(255,68,68,0.08);
+      --danger-25:  rgba(255,68,68,0.25);
+      --green-08:   rgba(34,197,94,0.08);
+      --green-25:   rgba(34,197,94,0.25);
 
-      --danger:       #ff4444;
-      --danger-08:    rgba(255,68,68,0.08);
-      --danger-glow:  rgba(255,68,68,0.35);
-      --trivial:      #44cc88;
-      --trivial-08:   rgba(68,204,136,0.08);
+      --font-ui:   'Rajdhani', system-ui, sans-serif;
+      --font-mono: 'Share Tech Mono', monospace;
+
+      --nav-h:    60px;
+      --foot-h:   44px;
+
+      --cut-lg: 10px;
+      --cut-md: 8px;
+      --cut-sm: 5px;
     }
 
-    /* ══════════════════════════════════════════════════════════
-       RESET + BASE
-    ══════════════════════════════════════════════════════════ */
+    /* ── Reset ───────────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     html, body {
       height: 100%;
-      background: var(--bg);
-      color: var(--text);
+      background: var(--forge-bg);
+      color: var(--forge-text);
       font-family: var(--font-ui);
       font-size: 15px;
       line-height: 1.5;
       overflow-x: hidden;
     }
 
-    ::-webkit-scrollbar            { width: 6px; }
-    ::-webkit-scrollbar-track      { background: var(--bg); }
-    ::-webkit-scrollbar-thumb      { background: var(--border-hi); }
-    ::-webkit-scrollbar-thumb:hover{ background: var(--accent); }
+    /* Blueprint grid */
+    body {
+      background-image:
+        linear-gradient(rgba(99,102,241,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99,102,241,0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      background-attachment: fixed;
+    }
 
-    /* ══════════════════════════════════════════════════════════
-       HEADER
-    ══════════════════════════════════════════════════════════ */
-    header {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      padding: 14px 28px;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
+    ::-webkit-scrollbar            { width: 6px; }
+    ::-webkit-scrollbar-track      { background: var(--forge-bg); }
+    ::-webkit-scrollbar-thumb      { background: var(--indigo-30); border-radius: 0; }
+    ::-webkit-scrollbar-thumb:hover{ background: var(--forge-indigo); }
+
+    /* ── Navbar ──────────────────────────────────────────────── */
+    .navbar {
       position: sticky;
       top: 0;
-      z-index: 100;
+      z-index: 200;
+      height: var(--nav-h);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      background: rgba(8,9,15,0.94);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--indigo-20);
     }
 
-    .logo {
-      width: 36px;
-      height: 36px;
-      border: 2px solid var(--accent);
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      text-decoration: none;
+      font-family: var(--font-ui);
+      font-weight: 700;
+      font-size: 16px;
+      letter-spacing: 3px;
+      color: var(--forge-text);
+      transition: color .15s;
+    }
+    .nav-logo:hover { color: var(--forge-ember); }
+
+    .nav-logo-mark {
+      width: 32px;
+      height: 32px;
+      background: var(--forge-ember);
+      clip-path: polygon(0 0, calc(100% - 7px) 0, 100% 7px, 100% 100%, 7px 100%, 0 calc(100% - 7px));
       display: grid;
       place-items: center;
-      font-size: 18px;
-      color: var(--accent);
+      font-size: 11px;
+      font-weight: 700;
+      color: #09090f;
+      letter-spacing: 0;
       flex-shrink: 0;
-      box-shadow: 0 0 12px var(--accent-glow);
-      transition: box-shadow .3s;
+      font-family: var(--font-ui);
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .nav-tool-badge {
       font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--forge-muted);
+      letter-spacing: 1.5px;
+      border-left: 1px solid var(--indigo-20);
+      padding-left: 16px;
+    }
+
+    .nav-link {
+      font-family: var(--font-ui);
+      font-size: 12px;
       font-weight: 700;
-      user-select: none;
+      letter-spacing: 2.5px;
+      color: var(--forge-muted);
+      text-decoration: none;
+      text-transform: uppercase;
+      padding: 5px 14px;
+      border: 1px solid var(--indigo-20);
+      clip-path: polygon(0 0, calc(100% - var(--cut-sm)) 0, 100% var(--cut-sm), 100% 100%, var(--cut-sm) 100%, 0 calc(100% - var(--cut-sm)));
+      transition: color .15s, border-color .15s;
+    }
+    .nav-link:hover {
+      color: var(--forge-text);
+      border-color: var(--forge-indigo);
     }
 
-    .header-title h1 {
-      font-size: 17px;
-      font-weight: 700;
-      letter-spacing: 3px;
-      color: var(--text-bright);
-      line-height: 1.1;
+    /* ── App wrapper ─────────────────────────────────────────── */
+    .app-wrapper {
+      display: flex;
+      flex-direction: column;
+      min-height: calc(100vh - var(--nav-h));
     }
 
-    .header-title span {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--text-dim);
-      letter-spacing: 1px;
-    }
-
-    .header-badge {
-      margin-left: auto;
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--text-dim);
-      border: 1px solid var(--border);
-      padding: 3px 10px;
-      letter-spacing: 1px;
-    }
-
-    /* ══════════════════════════════════════════════════════════
-       LAYOUT
-    ══════════════════════════════════════════════════════════ */
+    /* ── Main grid ───────────────────────────────────────────── */
     main {
       display: grid;
       grid-template-columns: 340px 1fr;
-      min-height: calc(100vh - 65px);
+      flex: 1;
+      min-height: calc(100vh - var(--nav-h) - var(--foot-h));
     }
 
     @media (max-width: 860px) {
       main { grid-template-columns: 1fr; }
     }
 
-    /* ══════════════════════════════════════════════════════════
-       CONTROLS PANEL (left)
-    ══════════════════════════════════════════════════════════ */
+    /* ── Controls Panel ──────────────────────────────────────── */
     .controls-panel {
-      border-right: 1px solid var(--border);
+      border-right: 1px solid var(--indigo-12);
       padding: 0 0 40px;
       display: flex;
       flex-direction: column;
-      background: var(--surface);
+      background: rgba(15,17,32,0.65);
     }
 
     .controls-body {
@@ -157,7 +193,7 @@
       flex: 1;
     }
 
-    /* ── Section header ────────────────────────────────────── */
+    /* Section headers */
     .sec {
       display: flex;
       align-items: center;
@@ -166,18 +202,19 @@
       font-size: 11px;
       font-weight: 700;
       letter-spacing: 2.5px;
-      color: var(--text-dim);
+      color: var(--forge-muted);
+      font-family: var(--font-ui);
     }
 
     .sec-line {
       flex: 1;
       height: 1px;
-      background: var(--border);
+      background: var(--indigo-15);
     }
 
-    .sec-icon { color: var(--accent); font-size: 12px; }
+    .sec-icon { color: var(--forge-indigo); font-size: 12px; }
 
-    /* ── Input row ─────────────────────────────────────────── */
+    /* Input rows */
     .row {
       display: flex;
       gap: 12px;
@@ -188,17 +225,18 @@
     .field { display: flex; flex-direction: column; gap: 5px; flex: 1; }
 
     .field label {
+      font-family: var(--font-ui);
       font-size: 11px;
       letter-spacing: 1.5px;
-      color: var(--text-dim);
+      color: var(--forge-muted);
       font-weight: 600;
     }
 
     input[type="number"] {
       width: 100%;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      color: var(--text-bright);
+      background: var(--forge-surface);
+      border: 1px solid var(--indigo-20);
+      color: var(--forge-text);
       font-family: var(--font-mono);
       font-size: 15px;
       padding: 8px 12px;
@@ -210,46 +248,48 @@
     input[type="number"]::-webkit-inner-spin-button,
     input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
     input[type="number"]:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 1px var(--accent-20);
+      border-color: var(--forge-indigo);
+      box-shadow: 0 0 0 1px var(--indigo-15);
     }
 
-    /* ── Simulate button ───────────────────────────────────── */
+    /* Simulate button */
     .btn-simulate {
       width: 100%;
       margin-top: 8px;
       padding: 14px 0;
-      background: transparent;
-      border: 1px solid var(--accent);
-      color: var(--accent);
+      background: var(--forge-ember);
+      border: none;
+      color: #09090f;
       font-family: var(--font-ui);
       font-size: 14px;
       font-weight: 700;
       letter-spacing: 3.5px;
+      text-transform: uppercase;
       cursor: pointer;
       position: relative;
       overflow: hidden;
-      transition: background .15s, box-shadow .15s, transform .08s;
+      clip-path: polygon(0 0, calc(100% - var(--cut-lg)) 0, 100% var(--cut-lg), 100% 100%, var(--cut-lg) 100%, 0 calc(100% - var(--cut-lg)));
+      transition: box-shadow .15s, transform .08s;
     }
 
     .btn-simulate::before {
       content: '';
       position: absolute;
       inset: 0;
-      background: var(--accent);
+      background: rgba(255,255,255,0.12);
       opacity: 0;
       transition: opacity .15s;
     }
 
-    .btn-simulate:hover::before  { opacity: .08; }
-    .btn-simulate:hover          { box-shadow: 0 0 20px var(--accent-glow); }
-    .btn-simulate:active         { transform: scale(.985); }
+    .btn-simulate:hover::before { opacity: 1; }
+    .btn-simulate:hover         { box-shadow: 0 0 28px var(--ember-40); }
+    .btn-simulate:active        { transform: scale(.985); }
 
-    .btn-simulate .btn-label     { position: relative; z-index: 1; }
+    .btn-simulate .btn-label    { position: relative; z-index: 1; }
 
     .btn-simulate.loading {
       pointer-events: none;
-      opacity: .6;
+      opacity: .65;
     }
 
     .btn-simulate.loading .btn-label::after {
@@ -265,22 +305,20 @@
       100% { content: '...'; }
     }
 
-    /* ── Error ─────────────────────────────────────────────── */
+    /* Error */
     .error-msg {
       font-family: var(--font-mono);
       font-size: 12px;
-      color: var(--danger);
+      color: var(--forge-danger);
       margin-top: 10px;
       padding: 8px 12px;
-      border-left: 2px solid var(--danger);
+      border-left: 2px solid var(--forge-danger);
       background: var(--danger-08);
       display: none;
       letter-spacing: 0.5px;
     }
 
-    /* ══════════════════════════════════════════════════════════
-       OUTPUT PANEL (right)
-    ══════════════════════════════════════════════════════════ */
+    /* ── Output Panel ────────────────────────────────────────── */
     .output-panel {
       display: flex;
       flex-direction: column;
@@ -288,7 +326,6 @@
       gap: 20px;
     }
 
-    /* ── Panel section header ──────────────────────────────── */
     .output-header {
       display: flex;
       align-items: center;
@@ -296,16 +333,17 @@
     }
 
     .output-header h2 {
+      font-family: var(--font-ui);
       font-size: 11px;
       font-weight: 700;
       letter-spacing: 3px;
-      color: var(--text-dim);
+      color: var(--forge-muted);
     }
 
-    /* ── Chart container ───────────────────────────────────── */
+    /* Chart container */
     .chart-container {
-      background: var(--surface);
-      border: 1px solid var(--border);
+      background: var(--forge-surface);
+      border: 1px solid var(--indigo-15);
       padding: 20px;
       position: relative;
       flex: 1;
@@ -313,6 +351,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
     }
 
     .chart-container canvas {
@@ -321,38 +360,36 @@
       height: 100% !important;
     }
 
-    /* ── Placeholder ───────────────────────────────────────── */
+    /* Placeholder */
     .placeholder {
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 12px;
-      color: var(--text-dim);
+      color: var(--forge-muted);
       user-select: none;
     }
 
-    .placeholder svg {
-      opacity: 0.18;
-    }
+    .placeholder svg { opacity: 0.18; }
 
     .placeholder p {
       font-size: 13px;
       letter-spacing: 1px;
       font-weight: 600;
+      font-family: var(--font-ui);
     }
 
     .placeholder p strong {
-      color: var(--accent);
-      opacity: 0.7;
+      color: var(--forge-ember);
+      opacity: 0.85;
     }
 
-    /* ══════════════════════════════════════════════════════════
-       SUMMARY TABLE
-    ══════════════════════════════════════════════════════════ */
+    /* ── Summary ─────────────────────────────────────────────── */
     .summary {
       display: none;
-      border: 1px solid var(--border);
-      background: var(--surface);
+      border: 1px solid var(--indigo-15);
+      background: var(--forge-surface);
+      clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
     }
 
     .summary.visible { display: block; }
@@ -360,20 +397,21 @@
     .summary-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      border-bottom: 1px solid var(--border);
+      border-bottom: 1px solid var(--indigo-12);
     }
 
     .stat-cell {
       padding: 14px 18px;
-      border-right: 1px solid var(--border);
+      border-right: 1px solid var(--indigo-12);
     }
     .stat-cell:last-child { border-right: none; }
 
     .stat-label {
+      font-family: var(--font-ui);
       font-size: 10px;
       font-weight: 700;
       letter-spacing: 2px;
-      color: var(--text-dim);
+      color: var(--forge-muted);
       margin-bottom: 4px;
     }
 
@@ -383,26 +421,27 @@
       line-height: 1;
     }
 
-    .stat-value.accent  { color: var(--accent); }
-    .stat-value.danger  { color: var(--danger); }
-    .stat-value.trivial { color: var(--trivial); }
-    .stat-value.ok      { color: var(--text-bright); }
+    .stat-value.accent  { color: var(--forge-ember); }
+    .stat-value.danger  { color: var(--forge-danger); }
+    .stat-value.trivial { color: var(--forge-green); }
+    .stat-value.ok      { color: var(--forge-text); }
 
-    /* ── Wave pill rows ────────────────────────────────────── */
+    /* Wave pills */
     .waves-row {
       display: flex;
       align-items: flex-start;
       gap: 14px;
       padding: 12px 18px;
-      border-bottom: 1px solid var(--border);
+      border-bottom: 1px solid var(--indigo-12);
     }
     .waves-row:last-child { border-bottom: none; }
 
     .waves-row-label {
+      font-family: var(--font-ui);
       font-size: 10px;
       font-weight: 700;
       letter-spacing: 2px;
-      color: var(--text-dim);
+      color: var(--forge-muted);
       white-space: nowrap;
       padding-top: 3px;
       min-width: 110px;
@@ -419,173 +458,214 @@
       font-size: 11px;
       padding: 2px 9px;
       letter-spacing: 0.5px;
+      clip-path: polygon(0 0, calc(100% - 4px) 0, 100% 4px, 100% 100%, 4px 100%, 0 calc(100% - 4px));
     }
 
-    .pill.danger  { background: var(--danger-08);  color: var(--danger);  border: 1px solid rgba(255,68,68,0.25); }
-    .pill.trivial { background: var(--trivial-08); color: var(--trivial); border: 1px solid rgba(68,204,136,0.25); }
+    .pill.danger  { background: var(--danger-08); color: var(--forge-danger); border: 1px solid var(--danger-25); }
+    .pill.trivial { background: var(--green-08);  color: var(--forge-green);  border: 1px solid var(--green-25); }
 
     .no-waves {
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--text-dim);
+      color: var(--forge-muted);
       letter-spacing: 1px;
       padding-top: 3px;
     }
+
+    /* ── Footer ──────────────────────────────────────────────── */
+    footer {
+      height: var(--foot-h);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      border-top: 1px solid var(--indigo-12);
+      background: rgba(8,9,15,0.7);
+    }
+
+    footer span {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--forge-muted);
+      letter-spacing: 0.5px;
+    }
+
+    footer a {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--forge-indigo);
+      text-decoration: none;
+      letter-spacing: 0.5px;
+      transition: color .15s;
+    }
+    footer a:hover { color: var(--forge-purple); }
   </style>
 </head>
 <body>
 
-<!-- ══ HEADER ══════════════════════════════════════════════ -->
-<header>
-  <div class="logo">SF</div>
-  <div class="header-title">
-    <h1>SIMFORGE</h1>
-    <span>CMG FORGE / WAVE BALANCE SIMULATOR</span>
+<!-- NAVBAR -->
+<nav class="navbar">
+  <a href="https://cmgforge.com" class="nav-logo">
+    <div class="nav-logo-mark">CF</div>
+    CMG FORGE
+  </a>
+  <div class="nav-right">
+    <span class="nav-tool-badge">SIMFORGE / WAVE BALANCE SIM</span>
+    <a href="https://cmgforge.com/tools" class="nav-link">All Tools</a>
   </div>
-  <div class="header-badge">v1.0</div>
-</header>
+</nav>
 
-<!-- ══ MAIN ════════════════════════════════════════════════ -->
-<main>
+<div class="app-wrapper">
 
-  <!-- LEFT: CONTROLS -->
-  <aside class="controls-panel">
-    <div class="controls-body">
+  <!-- MAIN GRID -->
+  <main>
 
-      <!-- SIMULATION -->
-      <div class="sec">
-        <span class="sec-icon">◈</span>
-        SIMULATION
-        <div class="sec-line"></div>
+    <!-- LEFT: CONTROLS -->
+    <aside class="controls-panel">
+      <div class="controls-body">
+
+        <!-- SIMULATION -->
+        <div class="sec">
+          <span class="sec-icon">◈</span>
+          SIMULATION
+          <div class="sec-line"></div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="wave_count">WAVE COUNT (5 – 50)</label>
+            <input type="number" id="wave_count" value="20" min="5" max="50" />
+          </div>
+        </div>
+
+        <!-- PLAYER -->
+        <div class="sec">
+          <span class="sec-icon">◈</span>
+          PLAYER
+          <div class="sec-line"></div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="player_hp">BASE HP</label>
+            <input type="number" id="player_hp" value="100" min="1" />
+          </div>
+          <div class="field">
+            <label for="player_dps">BASE DPS</label>
+            <input type="number" id="player_dps" value="50" min="1" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="player_scale">POWER SCALING / WAVE (%)</label>
+            <input type="number" id="player_scale" value="10" min="0" max="200" step="0.5" />
+          </div>
+        </div>
+
+        <!-- ENEMY -->
+        <div class="sec">
+          <span class="sec-icon">◈</span>
+          ENEMY
+          <div class="sec-line"></div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="enemy_hp">BASE HP</label>
+            <input type="number" id="enemy_hp" value="80" min="1" />
+          </div>
+          <div class="field">
+            <label for="enemy_damage">BASE DAMAGE</label>
+            <input type="number" id="enemy_damage" value="20" min="1" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="enemy_scale">DIFFICULTY SCALING / WAVE (%)</label>
+            <input type="number" id="enemy_scale" value="15" min="0" max="200" step="0.5" />
+          </div>
+        </div>
+
+        <!-- RUN -->
+        <div class="sec">
+          <span class="sec-icon">◈</span>
+          RUN
+          <div class="sec-line"></div>
+        </div>
+
+        <button class="btn-simulate" id="btn-simulate" onclick="runSimulation()">
+          <span class="btn-label">&#9654; SIMULATE</span>
+        </button>
+
+        <div class="error-msg" id="error-msg"></div>
+
+      </div>
+    </aside>
+
+    <!-- RIGHT: OUTPUT -->
+    <div class="output-panel">
+
+      <div class="output-header">
+        <h2>BALANCE OUTPUT</h2>
       </div>
 
-      <div class="row">
-        <div class="field">
-          <label for="wave_count">WAVE COUNT (5 – 50)</label>
-          <input type="number" id="wave_count" value="20" min="5" max="50" />
+      <div class="chart-container" id="chart-container">
+        <div class="placeholder" id="placeholder">
+          <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+          <p>Configure parameters and press <strong>SIMULATE</strong></p>
+        </div>
+        <canvas id="chart" style="display:none; position:absolute; inset:20px;"></canvas>
+      </div>
+
+      <div class="summary" id="summary">
+        <div class="summary-grid">
+          <div class="stat-cell">
+            <div class="stat-label">TOTAL WAVES</div>
+            <div class="stat-value accent" id="s-total">—</div>
+          </div>
+          <div class="stat-cell">
+            <div class="stat-label">DANGER WAVES</div>
+            <div class="stat-value danger" id="s-danger">—</div>
+          </div>
+          <div class="stat-cell">
+            <div class="stat-label">TRIVIAL WAVES</div>
+            <div class="stat-value trivial" id="s-trivial">—</div>
+          </div>
+          <div class="stat-cell">
+            <div class="stat-label">BALANCED WAVES</div>
+            <div class="stat-value ok" id="s-balanced">—</div>
+          </div>
+        </div>
+
+        <div class="waves-row">
+          <div class="waves-row-label">DANGER WAVES</div>
+          <div class="pills" id="danger-pills">
+            <span class="no-waves">NONE</span>
+          </div>
+        </div>
+
+        <div class="waves-row">
+          <div class="waves-row-label">TRIVIAL WAVES</div>
+          <div class="pills" id="trivial-pills">
+            <span class="no-waves">NONE</span>
+          </div>
         </div>
       </div>
-
-      <!-- PLAYER -->
-      <div class="sec">
-        <span class="sec-icon">◈</span>
-        PLAYER
-        <div class="sec-line"></div>
-      </div>
-
-      <div class="row">
-        <div class="field">
-          <label for="player_hp">BASE HP</label>
-          <input type="number" id="player_hp" value="100" min="1" />
-        </div>
-        <div class="field">
-          <label for="player_dps">BASE DPS</label>
-          <input type="number" id="player_dps" value="50" min="1" />
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="field">
-          <label for="player_scale">POWER SCALING / WAVE (%)</label>
-          <input type="number" id="player_scale" value="10" min="0" max="200" step="0.5" />
-        </div>
-      </div>
-
-      <!-- ENEMY -->
-      <div class="sec">
-        <span class="sec-icon">◈</span>
-        ENEMY
-        <div class="sec-line"></div>
-      </div>
-
-      <div class="row">
-        <div class="field">
-          <label for="enemy_hp">BASE HP</label>
-          <input type="number" id="enemy_hp" value="80" min="1" />
-        </div>
-        <div class="field">
-          <label for="enemy_damage">BASE DAMAGE</label>
-          <input type="number" id="enemy_damage" value="20" min="1" />
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="field">
-          <label for="enemy_scale">DIFFICULTY SCALING / WAVE (%)</label>
-          <input type="number" id="enemy_scale" value="15" min="0" max="200" step="0.5" />
-        </div>
-      </div>
-
-      <!-- SIMULATE -->
-      <div class="sec">
-        <span class="sec-icon">◈</span>
-        RUN
-        <div class="sec-line"></div>
-      </div>
-
-      <button class="btn-simulate" id="btn-simulate" onclick="runSimulation()">
-        <span class="btn-label">▶ SIMULATE</span>
-      </button>
-
-      <div class="error-msg" id="error-msg"></div>
 
     </div>
-  </aside>
+  </main>
 
-  <!-- RIGHT: OUTPUT -->
-  <div class="output-panel">
+  <!-- FOOTER -->
+  <footer>
+    <span>© CMG Forge — Free, forever.</span>
+    <a href="https://cmgforge.com">cmgforge.com</a>
+  </footer>
 
-    <div class="output-header">
-      <h2>BALANCE OUTPUT</h2>
-    </div>
-
-    <div class="chart-container" id="chart-container">
-      <div class="placeholder" id="placeholder">
-        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
-          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-        </svg>
-        <p>Configure parameters and press <strong>SIMULATE</strong></p>
-      </div>
-      <canvas id="chart" style="display:none; position:absolute; inset:20px;"></canvas>
-    </div>
-
-    <div class="summary" id="summary">
-      <div class="summary-grid">
-        <div class="stat-cell">
-          <div class="stat-label">TOTAL WAVES</div>
-          <div class="stat-value accent" id="s-total">—</div>
-        </div>
-        <div class="stat-cell">
-          <div class="stat-label">DANGER WAVES</div>
-          <div class="stat-value danger" id="s-danger">—</div>
-        </div>
-        <div class="stat-cell">
-          <div class="stat-label">TRIVIAL WAVES</div>
-          <div class="stat-value trivial" id="s-trivial">—</div>
-        </div>
-        <div class="stat-cell">
-          <div class="stat-label">BALANCED WAVES</div>
-          <div class="stat-value ok" id="s-balanced">—</div>
-        </div>
-      </div>
-
-      <div class="waves-row">
-        <div class="waves-row-label">DANGER WAVES</div>
-        <div class="pills" id="danger-pills">
-          <span class="no-waves">NONE</span>
-        </div>
-      </div>
-
-      <div class="waves-row">
-        <div class="waves-row-label">TRIVIAL WAVES</div>
-        <div class="pills" id="trivial-pills">
-          <span class="no-waves">NONE</span>
-        </div>
-      </div>
-    </div>
-
-  </div>
-</main>
+</div>
 
 <script>
   let chartInstance = null;
@@ -688,13 +768,13 @@
           {
             label: 'Player Power',
             data:  player_power,
-            borderColor:     '#ffaa00',
-            backgroundColor: 'rgba(255,170,0,0.06)',
+            borderColor:     '#f97316',
+            backgroundColor: 'rgba(249,115,22,0.06)',
             borderWidth: 2,
             pointRadius: waves.length <= 25 ? 3 : 0,
             pointHoverRadius: 5,
-            pointBackgroundColor: '#ffaa00',
-            pointBorderColor: '#ffaa00',
+            pointBackgroundColor: '#f97316',
+            pointBorderColor: '#f97316',
             tension: 0.3,
             fill: false,
           },
@@ -720,7 +800,7 @@
         plugins: {
           legend: {
             labels: {
-              color: '#4e5570',
+              color: '#64748b',
               font: { family: "'Share Tech Mono', monospace", size: 11 },
               usePointStyle: true,
               pointStyleWidth: 14,
@@ -728,11 +808,11 @@
             }
           },
           tooltip: {
-            backgroundColor: '#0e1018',
-            borderColor: '#2c3050',
+            backgroundColor: '#0f1120',
+            borderColor: 'rgba(99,102,241,0.3)',
             borderWidth: 1,
-            titleColor: '#ffaa00',
-            bodyColor: '#c8d0e8',
+            titleColor: '#f97316',
+            bodyColor: '#f1f5f9',
             titleFont: { family: "'Share Tech Mono', monospace", size: 12 },
             bodyFont:  { family: "'Share Tech Mono', monospace", size: 12 },
             padding: 12,
@@ -746,22 +826,22 @@
         scales: {
           x: {
             ticks: {
-              color: '#4e5570',
+              color: '#64748b',
               font: { family: "'Share Tech Mono', monospace", size: 10 },
               maxRotation: 0,
               autoSkip: true,
               maxTicksLimit: 15,
             },
-            grid: { color: 'rgba(44,48,80,0.5)' },
-            border: { color: '#1c1f30' },
+            grid: { color: 'rgba(99,102,241,0.08)' },
+            border: { color: 'rgba(99,102,241,0.15)' },
           },
           y: {
             ticks: {
-              color: '#4e5570',
+              color: '#64748b',
               font: { family: "'Share Tech Mono', monospace", size: 10 },
             },
-            grid: { color: 'rgba(44,48,80,0.5)' },
-            border: { color: '#1c1f30' },
+            grid: { color: 'rgba(99,102,241,0.08)' },
+            border: { color: 'rgba(99,102,241,0.15)' },
           }
         }
       }
